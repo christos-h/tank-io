@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <canvas id="gameCanvas" width="500" height="500">
+
+    </canvas>
+
+    <script>
+        var ctx = document.getElementById("gameCanvas").getContext("2d");
+        window.addEventListener('keydown', this.check, false);
+        
+        function check(e){
+            console.log(e.keyCode);
+        }
+        
+        renderBullet(10, 10)
+        renderTank(50, 50, 180, 'green', 'Christos');
+
+        function renderTank(x, y, theta, color, name) {
+            const tankSize = 30;
+
+            renderTracks();
+            renderBody()
+            renderCannon();
+            renderName();
+
+            function renderTracks() {
+                ctx.save();
+                ctx.beginPath();
+                ctx.translate(x, y);
+                ctx.rotate(theta * Math.PI / 180)
+                ctx.fillStyle = 'black';
+                ctx.fillRect(-tankSize / 2, -tankSize / 2, tankSize, tankSize);
+                ctx.restore();
+            }
+
+            function renderBody() {
+                ctx.arc(x, y, (tankSize + 3) / 2, 0, 2 * Math.PI);
+                ctx.fillStyle = color;
+                ctx.fill();
+            }
+
+            function renderCannon() {
+                const cannonWidth = 6;
+                const cannonLength = 30;
+                ctx.save();
+                ctx.beginPath();
+                ctx.translate(x, y);
+                ctx.rotate(theta * Math.PI / 180);
+                ctx.fillStyle = 'black';
+                ctx.fillRect(-cannonWidth / 2, 0, cannonWidth, cannonLength);
+                ctx.restore();
+            }
+
+            function renderName() {
+                console.log('here')
+                ctx.font = "12px Ariel";
+                ctx.fillStyle = "black"
+                ctx.fillText(name, x, y - tankSize);
+            }
+        }
+
+        function renderBullet(x, y) {
+            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            ctx.fillStyle = 'black';
+            ctx.fill();
+            ctx.stroke();
+        }
+
+    </script>
+</body>
+
+</html>
