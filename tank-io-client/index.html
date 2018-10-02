@@ -6,17 +6,52 @@
     <canvas id="gameCanvas" width="500" height="500">
 
     </canvas>
-
+    <script src="./socket.io/socket.io.js"></script>
     <script>
-        var ctx = document.getElementById("gameCanvas").getContext("2d");
-        window.addEventListener('keydown', this.check, false);
-        
-        function check(e){
-            console.log(e.keyCode);
-        }
-        
+        // Socket =======================================================
+        var socket = io('http://localhost:3000');
+        socket.on('connect', function () { });
+        socket.on('state', function (data) {
+            x = data[0].x;
+            y = data[0].y;
+            theta = data[0].theta;
+            ctx.clearRect(0, 0, 500, 500);
+            renderTank(x, y, theta, 'green', 'christos');
+        });
+        socket.on('disconnect', function () { });
+
+        // Canvas / Context =============================================
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Keys =========================================================    
+        var keys = [];
+
+        document.body.addEventListener("keydown", function (e) {
+            keys[e.keyCode] = true;
+        });
+        document.body.addEventListener("keyup", function (e) {
+            keys[e.keyCode] = false;
+        });
+
+        // Mouse =======================================================
+        var mouse = { x: 0, y: 0 };
+        canvas.addEventListener('mousemove', function (evt) {
+            var rect = canvas.getBoundingClientRect();
+            mouse = {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }, false);
+
+        // Graphics ====================================================
+
+        var x = 100;
+        var y = 100;
+        var theta = 0;
+
         renderBullet(10, 10)
-        renderTank(50, 50, 180, 'green', 'Christos');
+        renderTank(x, y, theta, 'green', 'Christos');
 
         function renderTank(x, y, theta, color, name) {
             const tankSize = 30;
@@ -30,7 +65,7 @@
                 ctx.save();
                 ctx.beginPath();
                 ctx.translate(x, y);
-                ctx.rotate(theta * Math.PI / 180)
+                ctx.rotate(theta)
                 ctx.fillStyle = 'black';
                 ctx.fillRect(-tankSize / 2, -tankSize / 2, tankSize, tankSize);
                 ctx.restore();
@@ -48,14 +83,17 @@
                 ctx.save();
                 ctx.beginPath();
                 ctx.translate(x, y);
-                ctx.rotate(theta * Math.PI / 180);
+                ctx.rotate(getMouseTheta(x, y));
                 ctx.fillStyle = 'black';
                 ctx.fillRect(-cannonWidth / 2, 0, cannonWidth, cannonLength);
                 ctx.restore();
             }
 
+            function getMouseTheta(x, y) {
+                return -Math.atan2(mouse.x - x, mouse.y - y);
+            }
+
             function renderName() {
-                console.log('here')
                 ctx.font = "12px Ariel";
                 ctx.fillStyle = "black"
                 ctx.fillText(name, x, y - tankSize);
@@ -68,6 +106,8 @@
             ctx.fill();
             ctx.stroke();
         }
+
+        // END =================================================
 
     </script>
 </body>

@@ -23,18 +23,19 @@ io.on('connection', function (clientSocket) {
 
 
 function getAvailableGame() {
+    let availableGame = null;
     games.forEach(function (game) {
-        if (game.available()) return game;
+        if (game.available()) availableGame = game;
     });
-    return new Game(games.length);
+    return availableGame === null ? new Game(games.length) : availableGame;
 }
 
 server.listen(3000);
 
 function Player(socket) {
     this.socket = socket;
-    this.x = 5;
-    this.y = 5;
+    this.x = 100    ;
+    this.y = 100;
     this.theta = 0;
     this.keys = [];
     // L R U D
@@ -44,10 +45,10 @@ function Player(socket) {
 
     this.update = function () {
         //Get theta from keys
-        theta += 1;
+        this.theta += 4 * Math.PI / 360;
         // Update positions
-        this.x += Math.cos(theta);
-        this.y += Math.sin(theta);
+        this.x += 2 * Math.cos(this.theta);
+        this.y += 2 * Math.sin(this.theta);
     }
 
     this.greeting = function () {
@@ -68,7 +69,7 @@ function Game(id) {
     };
 
     this.startIfReady = function () {
-        if (this.players.length == this.maxPlayers) start();
+        if (this.players.length == this.maxPlayers) this.start();
     };
 
     this.start = function () {
@@ -80,6 +81,7 @@ function Game(id) {
             this.players.find(function (player) {
                 return player.socket === socket;
             })), 1);
+        console.log('Player Disconnected');
     };
 
     this.update = function () {
@@ -88,9 +90,14 @@ function Game(id) {
         })
     }
 
+    this.gameState = function () {
+        var state = []
+        this.players.forEach(player => state.push({ x: player.x, y: player.y, theta: player.theta }))
+        return state;
+    }
+
     this.emit = function () {
-        let gameState = 5; // TODO
-        this.players.forEach(function (player) { io.emit('state', gameState) });
+        io.emit('state', this.gameState());
     }
 }
 
@@ -131,3 +138,5 @@ function update(delta) {
 }
 
 gameLoop();
+
+console.log('Server started')
