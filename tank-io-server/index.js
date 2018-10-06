@@ -34,7 +34,7 @@ server.listen(3000);
 
 function Player(socket) {
     this.socket = socket;
-    this.x = 100    ;
+    this.x = 100;
     this.y = 100;
     this.theta = 0;
     this.keys = [];
