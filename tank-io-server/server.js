@@ -29,7 +29,7 @@ function generateId() { return sha(Math.round(Math.random() * 10000000)) }
 function getAvailableGame() {
     let availableGame = null;
     games.forEach(function (game) {
-        if (game.available()) availableGame = game;
+        if (game.available() && !game.started) availableGame = game;
     });
     if (availableGame != null) return availableGame;
     availableGame = new Game(games.length, io);
@@ -47,7 +47,7 @@ var gameLoop = function () {
 }
 
 function update() {
-    games.filter(game => !game.available()).forEach(function (game) {
+    games.filter(game => !game.available() || game.started).forEach(function (game) {
         game.update();
         game.emit();
     });

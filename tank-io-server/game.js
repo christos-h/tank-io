@@ -3,6 +3,7 @@ function Game(id, io) {
     this.io = io;
     this.maxPlayers = 4;
     this.players = [];
+    this.started = false;
 
     this.addPlayer = function (player) {
         this.players.push(player);
@@ -17,6 +18,7 @@ function Game(id, io) {
     };
 
     this.start = function () {
+        this.started = true;
         this.players.forEach(player => player.start())
     };
 

@@ -1,150 +1,659 @@
 <!DOCTYPE html>
-<html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/bootstrap-responsive.css">
+    <link rel="stylesheet" href="css/custom-styles.css">
+    <link rel="stylesheet" href="css/font-awesome.css">
+    <link rel="stylesheet" href="css/component.css">
+    <link rel="stylesheet" href="css/font-awesome-ie7.css">
+
+
+    <script src="js/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+</head>
 
 <body>
+    <!--[if lt IE 7]>
+            <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+        <![endif]-->
 
-    <canvas id="gameCanvas" width="500" height="500">
+    <!-- This code is taken from http://twitter.github.com/bootstrap/examples/hero.html -->
 
-    </canvas>
-    <script src="./socket.io/socket.io.js"></script>
+    <!-- Site header starts here -->
+
+
+
+
+    <!-- main content starts here -->
+
+    <div class="container b-radius-top">
+        <div class="top-bar b-radius">
+            <div class="top-content">
+                <ul>
+                    <li><a href="#"><i class="fw-icon-link icon"></i>www.sitename.com</a></li>
+                    <li><a href="#"><i class="fw-icon-envelope-alt icon"></i>info@sitename.com</a></li>
+                    <li><a href="#"><i class="fw-icon-phone icon"></i>8888 88888</a></li>
+                </ul>
+            </div>
+            <div class="social">
+                <ul>
+                    <li><a href="#"><i class="fw-icon-facebook icon"></i></a></li>
+                    <li><a href="#"><i class="fw-icon-twitter icon"></i></a></li>
+                    <li><a href="#"><i class="fw-icon-linkedin icon"></i></a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="site-header">
+
+
+            <!-- Site Name starts here -->
+
+            <div class="site-name">
+                <h1>Website Name</h1>
+                <h5>your caption goes here</h5>
+            </div>
+
+            <!-- Site Name ends -->
+
+            <!-- Menu starts here -->
+            <div class="menu">
+                <div class="navbar">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <i class="fw-icon-th-list"></i>
+                    </a>
+                    <div class="nav-collapse collapse">
+                        <ul class="nav">
+                            <li class="active"><a href="#">Home</a></li>
+                            <li><a href="#">About</a></li>
+                            <li><a href="#">Services</a></li>
+                            <li><a href="#">Projects</a></li>
+                            <li><a href="#">Contact</a></li>
+                        </ul>
+                        <form class="search-form">
+                            <div class="input-append ">
+                                <input type="text" class="search-query input-large" placeholder="site search">
+                                <button type="submit" class="btn"><i class="icon-search"></i></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu ends -->
+        </div>
+
+        <!-- Banner starts here -->
+        
+        <!-- GAME ============================================================================================================================================================= -->
+
+        <div class="banner">
+                <canvas id="gameCanvas" width="500" height="500">
+
+                    </canvas>
+                    <script src="./socket.io/socket.io.js"></script>
+                    <script>
+                        // Globals
+                        var id = -1;
+                        var globalState = null;
+                        var gameInProgess = false;
+                
+                        // Socket =======================================================
+                        var socket = io('http://localhost:3000');
+                        socket.on('id', function (_id) {
+                            id = _id;
+                        });
+                
+                        socket.on('connect', function () { });
+                
+                        socket.on('state', function (data) {
+                            let state = data.filter(state => state.id == id)[0];
+                            if (state.id == id) {
+                                x = state.x;
+                                y = state.y;
+                                theta = state.theta;
+                            }
+                            ctx.clearRect(0, 0, 500, 500);
+                            data.forEach(tank => {
+                                renderTank(tank.x, tank.y, tank.theta, tank.color, tank.id);
+                            });
+                        });
+                
+                        socket.on('start', function () {
+                            gameInProgess = true;
+                        })
+                
+                        socket.on('disconnect', function () { });
+                
+                        socket.on('global', function (_globalState) {
+                            globalState = _globalState;
+                            if (!gameInProgess) renderMenu();
+                        });
+                
+                        // Canvas / Context =============================================
+                        const canvas = document.getElementById("gameCanvas");
+                        const ctx = canvas.getContext("2d");
+                
+                        // Keys =========================================================    
+                        var keys = [];
+                
+                        document.body.addEventListener("keydown", function (e) {
+                            keys[e.keyCode] = true;
+                        });
+                        document.body.addEventListener("keyup", function (e) {
+                            keys[e.keyCode] = false;
+                        });
+                
+                        // Mouse =======================================================
+                        var mouse = { x: 0, y: 0 };
+                        canvas.addEventListener('mousemove', function (evt) {
+                            var rect = canvas.getBoundingClientRect();
+                            mouse = {
+                                x: evt.clientX - rect.left,
+                                y: evt.clientY - rect.top
+                            };
+                        }, false);
+                
+                        // Graphics ====================================================
+                        var x = 100;
+                        var y = 100;
+                        var theta = 0;
+                
+                        renderMenu();
+                
+                        function renderMenu() {
+                
+                            if (globalState != null) {
+                                ctx.clearRect(0, 0, 500, 500);
+                                ctx.font = "30px Ariel";
+                                ctx.fillText('Waiting to join game...', 150, 200);
+                                ctx.font = "20px Ariel";
+                                ctx.fillText('Players Online: ' + globalState.nPlayers, 250, 250);
+                            }
+                        }
+                
+                        function renderTank(x, y, theta, color, name) {
+                            const tankSize = 30;
+                
+                            renderTracks();
+                            renderBody()
+                            renderCannon();
+                            renderName();
+                
+                            function renderTracks() {
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.translate(x, y);
+                                ctx.rotate(theta)
+                                ctx.fillStyle = 'black';
+                                ctx.fillRect(-tankSize / 2, -tankSize / 2, tankSize, tankSize);
+                                ctx.restore();
+                            }
+                
+                            function renderBody() {
+                                ctx.arc(x, y, (tankSize + 3) / 2, 0, 2 * Math.PI);
+                                ctx.fillStyle = color;
+                                ctx.fill();
+                            }
+                
+                            function renderCannon() {
+                                const cannonWidth = 6;
+                                const cannonLength = 30;
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.translate(x, y);
+                                ctx.rotate(getMouseTheta(x, y));
+                                ctx.fillStyle = 'black';
+                                ctx.fillRect(-cannonWidth / 2, 0, cannonWidth, cannonLength);
+                                ctx.restore();
+                            }
+                
+                            function getMouseTheta(x, y) {
+                                return -Math.atan2(mouse.x - x, mouse.y - y);
+                            }
+                
+                            function renderName() {
+                                ctx.font = "14px Ariel";
+                                ctx.fillStyle = "black"
+                                ctx.fillText(name, x, y - tankSize);
+                            }
+                        }
+                
+                        function renderBullet(x, y) {
+                            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+                            ctx.fillStyle = 'black';
+                            ctx.fill();
+                            ctx.stroke();
+                        }
+                
+                        // END =================================================
+                
+                    </script>
+        </div>
+
+        <!-- Banner ends here -->
+
+
+        <!-- Main content starts here -->
+
+        <div class="featured-blocks">
+            <div class="row-fluid">
+                <div class="featured-heading">
+                    <h1>Nunc dig nissi</h1>
+                    <h5>Phasellus ultrices nulla quis</h5>
+                </div>
+            </div>
+            <div class="row-fluid">
+
+
+                <div class="span4">
+                    <div class="block">
+                        <div class="block-title">
+                            <h1>Nunc digni</h1>
+                            <h2>Risus id mediou soim</h2>
+                        </div>
+                        <div class="block-content">
+                            <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Phasellus hendrerit. Pellentesque
+                                aliquet nibh nec urna. In nisi Sed egestas, ante et vulputate volutpat</p>
+                            <a href="#" class="btn"><i class="fw-icon-circle-arrow-right"></i> more</a>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="span4">
+                    <div class="block">
+                        <div class="block-title">
+                            <h1>Vesti bulum </h1>
+                            <h2>Praesent placerat ris</h2>
+                        </div>
+                        <div class="block-content">
+                            <p>Jorem ipsum dolor sit amet, consectetuer adipiscing elit. Phasellus hendrerit. Pellentesque
+                                aliquet nibh nec urna. In nisi Sed egestas, ante et vulputate volutpat</p>
+                            <a href="#" class="btn"><i class="fw-icon-circle-arrow-right"></i> more</a>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="span4">
+                    <div class="block">
+                        <div class="block-title">
+                            <h1>Integer vitae</h1>
+                            <h2>Ut aliquam sollicitudi</h2>
+                        </div>
+                        <div class="block-content">
+                            <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Phasellus hendrerit. Pellentesque
+                                aliquet nibh nec urna. In nisi Sed egestas, ante et vulputate volutpa</p>
+                            <a href="#" class="btn"><i class="fw-icon-circle-arrow-right"></i> more</a>
+                        </div>
+                    </div>
+                </div>
+                <div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <h2>Pellen tesque lacinia</h2>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed mattis sed mauris a accumsan. Phasellus
+                        quis scelerisque lacus. Aenean nec orci sit amet justo interdum ullamcorper eget eu diam. Integer
+                        dictum sem eu adipiscing cursus. Suspendisse posuere dui eu dignissim fermentum. .</p>
+                    <p>Phasellus adipiscing porttitor metus, eget commodo mi. Lorem ipsum dolor sit amet, consectetur adipiscing
+                        elit. Donec ut hendrerit ante. Phasellus viverra ligula tortor, ut sodales elit tempus eu. Vestibulum
+                        mattis sed purus at laoreet. Proin mattis, ante vel adipiscing porttitor, orci elit venenatis nibh,
+                        at molestie tortor dolor sit amet urna. .</p>
+                </div>
+
+
+
+
+            </div>
+        </div>
+
+
+        <!-- Featured slider starts here -->
+        <div class="featured-slider">
+            <h1>Morbi interdum mollis </h1>
+            <h5>Vestibulum auctor dapibus nequ</h5>
+            <div id="myCarousel1" class="carousel slide">
+
+                <div class="carousel-inner">
+                    <div class="item active">
+                        <div class="row-fluid">
+
+                            <div class="span3">
+                                <div class="gallery">
+                                    <img src="img/img1.jpg" class="b-radius-top">
+                                    <div class="slider-content b-radius-bottom">
+                                        <span>Tante etvulputa</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span3">
+                                <div class="gallery">
+                                    <img src="img/img2.jpg" class="b-radius-top">
+                                    <div class="slider-content b-radius-bottom">
+                                        <span>Phasellus pede</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span3">
+                                <div class="gallery">
+                                    <img src="img/img3.jpg" class="b-radius-top">
+                                    <div class="slider-content b-radius-bottom">
+                                        <span>Morbi interdum</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span3">
+                                <div class="gallery">
+                                    <img src="img/img4.jpg" class="b-radius-top">
+                                    <div class="slider-content b-radius-bottom">
+                                        <span>Suspendisse mauris</span>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+                        <!--/row-fluid-->
+                    </div>
+                    <div class="item">
+                        <div class="row-fluid">
+
+                            <div class="span3">
+                                <div class="gallery">
+                                    <img src="img/img1.jpg" class="b-radius-top">
+                                    <div class="slider-content b-radius-bottom">
+                                        <span>Tante etvulputa</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span3">
+                                <div class="gallery">
+                                    <img src="img/img2.jpg" class="b-radius-top">
+                                    <div class="slider-content b-radius-bottom">
+                                        <span>Phasellus pede</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span3">
+                                <div class="gallery">
+                                    <img src="img/img3.jpg" class="b-radius-top">
+                                    <div class="slider-content b-radius-bottom">
+                                        <span>Morbi interdum</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span3">
+                                <div class="gallery">
+                                    <img src="img/img4.jpg" class="b-radius-top">
+                                    <div class="slider-content b-radius-bottom">
+                                        <span>Suspendisse mauris</span>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+                        <!--/row-fluid-->
+                    </div>
+                    <div class="item">
+                        <div class="row-fluid">
+
+                            <div class="span3">
+                                <div class="gallery">
+                                    <img src="img/img1.jpg" class="b-radius-top">
+                                    <div class="slider-content b-radius-bottom">
+                                        <span>Tante etvulputa</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span3">
+                                <div class="gallery">
+                                    <img src="img/img2.jpg" class="b-radius-top">
+                                    <div class="slider-content b-radius-bottom">
+                                        <span>Phasellus pede</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span3">
+                                <div class="gallery">
+                                    <img src="img/img3.jpg" class="b-radius-top">
+                                    <div class="slider-content b-radius-bottom">
+                                        <span>Morbi interdum</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="span3">
+                                <div class="gallery">
+                                    <img src="img/img4.jpg" class="b-radius-top">
+                                    <div class="slider-content b-radius-bottom">
+                                        <span>Suspendisse mauris</span>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+                        <!--/row-fluid-->
+                    </div>
+
+                    <!-- Carousel items -->
+                </div>
+                <a class="carousel-control left" href="#myCarousel1" data-slide="prev"><i class="fw-icon-chevron-left"></i></a>
+                <a class="carousel-control right" href="#myCarousel1" data-slide="next"><i class="fw-icon-chevron-right"></i></a>
+            </div>
+        </div>
+        <div class="hiding">
+            <h1>Morbi interdum mollis </h1>
+            <h5>Vestibulum auctor dapibus nequ</h5>
+            <div class="carousel slide" id="myCarousel2">
+                <!-- Carousel items -->
+                <div class="carousel-inner">
+                    <div class="item active">
+                        <img src="img/img1.jpg" alt="">
+                    </div>
+                    <div class="item">
+                        <img src="img/img2.jpg" alt="">
+                    </div>
+                    <div class="item">
+                        <img src="img/img3.jpg" alt="">
+                    </div>
+                </div>
+                <a class="carousel-control left" href="#myCarousel2" data-slide="prev"><i class="fw-icon-chevron-left"></i></a>
+                <a class="carousel-control right" href="#myCarousel2" data-slide="next"><i class="fw-icon-chevron-right"></i></a>
+            </div>
+
+        </div>
+        <!-- Featured slider ends here -->
+
+
+        <!-- Featured content starts here -->
+
+        <div class="featured-content">
+            <div class="row-fluid">
+                <div class="span6">
+                    <div class="block">
+                        <div class="row-fluid">
+                            <div class="span6">
+                                <div class="block-title">
+                                    <h1>Teture adip</h1>
+                                    <h2>Risus id mediou soimto usce pelle nitesqu it nunc sed egesta ante gravids peses</h2>
+                                </div>
+                            </div>
+                            <div class="span6">
+                                <div class="block-content">
+                                    <p>Sed semper lorem at felis. Vestibulum volutpat, lacus a ultrices sagittis, mi neque
+                                        euismod dui, eu pulvinar nunc sapien ornare nisl.</p>
+                                    <a href="#" class="btn"><i class="fw-icon-circle-arrow-right"></i> more</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ruler"></div>
+                        <div class="row-fluid">
+                            <div class="span6">
+                                <div class="block-title">
+                                    <h1>Morbi interd</h1>
+                                    <h2>Fusce lobortis lorem at ipsum semper sagit on ec quis dui at dolor tempor interdum</h2>
+                                </div>
+                            </div>
+                            <div class="span6">
+                                <div class="block-content">
+                                    <p>Sed semper lorem at felis. Vestibulum volutpat, lacus a ultrices sagittis, mi neque
+                                        euismod dui, eu pulvinar nunc sapien ornare nisl.</p>
+                                    <a href="#" class="btn"><i class="fw-icon-circle-arrow-right"></i> more</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="span6">
+
+
+
+                    <div class="featured-accordion">
+                        <div class="accordion" id="accordion2">
+                            <div class="accordion-group accordion-caret">
+                                <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne">
+                                        Tetuer adipiscing elit lorem
+                                    </a>
+                                </div>
+                                <div id="collapseOne" class="accordion-body collapse">
+                                    <div class="accordion-inner">
+                                        <img src="img/img5.jpg" alt="">
+                                        <h1>Lorem ipsum dolor sit amet</h1>
+                                        <p class="last">consectetuer adipiscing elit. Phasellus hendrerit. Pellentesque aliquet
+                                            nibh nec urna. In nisi Sed egestas, ante et vulputate volutpat is, gravida id</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-group accordion-caret">
+                                <div class="accordion-heading">
+                                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
+                                        Sed egestas, ante et vulputate
+                                    </a>
+                                </div>
+                                <div id="collapseTwo" class="accordion-body in collapse" style="height: auto;">
+                                    <div class="accordion-inner">
+                                        <img src="img/img5.jpg" alt="">
+                                        <h1>Lorem ipsum dolor sit amet</h1>
+                                        <p class="last">consectetuer adipiscing elit. Phasellus hendrerit. Pellentesque aliquet
+                                            nibh nec urna. In nisi Sed egestas, ante et vulputate volutpat is, gravida id</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-group accordion-caret">
+                                <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#accordion2" href="#collapseThree">
+                                        Integer vitae libero ac risus
+                                    </a>
+                                </div>
+                                <div id="collapseThree" class="accordion-body collapse">
+                                    <div class="accordion-inner">
+                                        <img src="img/img5.jpg" alt="">
+                                        <h1>Lorem ipsum dolor sit amet</h1>
+                                        <p class="last">consectetuer adipiscing elit. Phasellus hendrerit. Pellentesque aliquet
+                                            nibh nec urna. In nisi Sed egestas, ante et vulputate volutpat is, gravida id</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-group accordion-caret">
+                                <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#accordion2" href="#collapseFour">
+                                        Donec quis dui at dolor
+                                    </a>
+                                </div>
+                                <div id="collapseFour" class="accordion-body collapse">
+                                    <div class="accordion-inner">
+                                        <img src="img/img5.jpg" alt="">
+                                        <h1>Lorem ipsum dolor sit amet</h1>
+                                        <p class="last">consectetuer adipiscing elit. Phasellus hendrerit. Pellentesque aliquet
+                                            nibh nec urna. In nisi Sed egestas, ante et vulputate volutpat is, gravida id</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Featured ends here -->
+        <!-- Featured accordion starts here -->
+
+
+        <!-- Featured accordion ends here -->
+
+        <!-- Main content ends here -->
+
+    </div>
+    <div class="container bg-blue b-radius-bottom">
+        <div class="site-footer">
+            <div class="row-fluid">
+                <div class="span4">
+                    <div class="user-info">
+                        <i class="fw-icon-twitter"></i>
+                        <h1><a href="#">@john doe</a></h1>
+                        <p class="last">Sed semper lorem at felis. Vestibulum volutpat, lacus a ultrices sagittis eupulvinar
+                            nuncint
+                        </p>
+                        <span>| 3 hrs ago |</span>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="user-info">
+                        <i class="fw-icon-twitter"></i>
+                        <h1><a href="#">@john doe</a></h1>
+                        <p class="last">Jovined semper lorem at felis. Vestibulum volutpat, lacus a ultrices sagittis.</p>
+                        <span>| 3 hrs ago |</span>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="user-info">
+                        <i class="fw-icon-twitter"></i>
+                        <h1><a href="#">@john doe</a></h1>
+                        <p class="last">Citened semper lorem at felis. Vestibulum volutpat, lacus a ultrices sagittis egesti
+                            ante
+                        </p>
+                        <span>| 3 hrs ago |</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="copy-rights">
+            Copyright (c) websitename. All rights reserved. Designed by: <a href="http://www.alltemplateneeds.com."> www.alltemplateneeds.com.</a>
+            Images From: <a href="http://www.wallcoo.net"> www.wallcoo.net</a>
+        </div>
+
+    </div>
+
+    <script src="js/jquery-1.9.1.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script src="js/masonry.pkgd.min.js"></script>
+    <script src="js/imagesloaded.js"></script>
+    <script src="js/classie.js"></script>
+    <script src="js/AnimOnScroll.js"></script>
+
     <script>
-        // Globals
-        var id = -1;
-        var globalState = null;
-        var gameInProgess = false;
-
-        // Socket =======================================================
-        var socket = io('http://localhost:3000');
-        socket.on('id', function (_id) {
-            id = _id;
+        new AnimOnScroll(document.getElementById('grid'), {
+            minDuration: 0.4,
+            maxDuration: 0.7,
+            viewportFactor: 0.2
         });
-
-        socket.on('connect', function () { });
-
-        socket.on('state', function (data) {
-            console.log(data);
-            let state = data.filter(state => state.id == id)[0];
-            if (state.id == id) {
-                x = state.x;
-                y = state.y;
-                theta = state.theta;
-            }
-            ctx.clearRect(0, 0, 500, 500);
-            data.forEach(tank => {
-                renderTank(tank.x, tank.y, tank.theta, tank.color, tank.id);
-            });
-        });
-
-        socket.on('start', function () {
-            gameInProgess = true;
-        })
-
-        socket.on('disconnect', function () { });
-
-        socket.on('global', function (_globalState) {
-            globalState = _globalState;
-            if (!gameInProgess) renderMenu();
-        });
-
-        // Canvas / Context =============================================
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-
-        // Keys =========================================================    
-        var keys = [];
-
-        document.body.addEventListener("keydown", function (e) {
-            keys[e.keyCode] = true;
-        });
-        document.body.addEventListener("keyup", function (e) {
-            keys[e.keyCode] = false;
-        });
-
-        // Mouse =======================================================
-        var mouse = { x: 0, y: 0 };
-        canvas.addEventListener('mousemove', function (evt) {
-            var rect = canvas.getBoundingClientRect();
-            mouse = {
-                x: evt.clientX - rect.left,
-                y: evt.clientY - rect.top
-            };
-        }, false);
-
-        // Graphics ====================================================
-        var x = 100;
-        var y = 100;
-        var theta = 0;
-
-        renderMenu();
-
-        function renderMenu() {
-
-            if (globalState != null) {
-                ctx.clearRect(0, 0, 500, 500);
-                ctx.font = "30px Ariel";
-                ctx.fillText('Waiting to join game...', 150, 200);
-                ctx.font = "20px Ariel";
-                ctx.fillText('Players Online: ' + globalState.nPlayers, 250, 250);
-            }
-        }
-
-        function renderTank(x, y, theta, color, name) {
-            const tankSize = 30;
-
-            renderTracks();
-            renderBody()
-            renderCannon();
-            renderName();
-
-            function renderTracks() {
-                ctx.save();
-                ctx.beginPath();
-                ctx.translate(x, y);
-                ctx.rotate(theta)
-                ctx.fillStyle = 'black';
-                ctx.fillRect(-tankSize / 2, -tankSize / 2, tankSize, tankSize);
-                ctx.restore();
-            }
-
-            function renderBody() {
-                ctx.arc(x, y, (tankSize + 3) / 2, 0, 2 * Math.PI);
-                ctx.fillStyle = color;
-                ctx.fill();
-            }
-
-            function renderCannon() {
-                const cannonWidth = 6;
-                const cannonLength = 30;
-                ctx.save();
-                ctx.beginPath();
-                ctx.translate(x, y);
-                ctx.rotate(getMouseTheta(x, y));
-                ctx.fillStyle = 'black';
-                ctx.fillRect(-cannonWidth / 2, 0, cannonWidth, cannonLength);
-                ctx.restore();
-            }
-
-            function getMouseTheta(x, y) {
-                return -Math.atan2(mouse.x - x, mouse.y - y);
-            }
-
-            function renderName() {
-                ctx.font = "14px Ariel";
-                ctx.fillStyle = "black"
-                ctx.fillText(name, x, y - tankSize);
-            }
-        }
-
-        function renderBullet(x, y) {
-            ctx.arc(x, y, 3, 0, 2 * Math.PI);
-            ctx.fillStyle = 'black';
-            ctx.fill();
-            ctx.stroke();
-        }
-
-        // END =================================================
-
     </script>
+
+
+
+
 </body>
 
 </html>
