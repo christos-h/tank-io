@@ -8,17 +8,42 @@
     </canvas>
     <script src="./socket.io/socket.io.js"></script>
     <script>
+        // Globals
+        var id = -1;
+        var globalState = null;
+        var gameInProgess = false;
+
         // Socket =======================================================
         var socket = io('http://localhost:3000');
-        socket.on('connect', function () { });
-        socket.on('state', function (data) {
-            x = data[0].x;
-            y = data[0].y;
-            theta = data[0].theta;
-            ctx.clearRect(0, 0, 500, 500);
-            renderTank(x, y, theta, 'green', 'christos');
+        socket.on('id', function (_id) {
+            id = _id;
         });
+
+        socket.on('connect', function () { });
+
+        socket.on('state', function (data) {
+            let state = data.filter(state => state.id == id)[0];
+            if (state.id == id) {
+                x = state.x;
+                y = state.y;
+                theta = state.theta;
+            }
+            ctx.clearRect(0, 0, 500, 500);
+            data.forEach(tank => {
+                renderTank(tank.x, tank.y, tank.theta, tank.color, tank.id);
+            });
+        });
+
+        socket.on('start', function () {
+            gameInProgess = true;
+        })
+
         socket.on('disconnect', function () { });
+
+        socket.on('global', function (_globalState) {
+            globalState = _globalState;
+            if (!gameInProgess) renderMenu();
+        });
 
         // Canvas / Context =============================================
         const canvas = document.getElementById("gameCanvas");
@@ -45,13 +70,22 @@
         }, false);
 
         // Graphics ====================================================
-
         var x = 100;
         var y = 100;
         var theta = 0;
 
-        renderBullet(10, 10)
-        renderTank(x, y, theta, 'green', 'Christos');
+        renderMenu();
+
+        function renderMenu() {
+
+            if (globalState != null) {
+                ctx.clearRect(0, 0, 500, 500);
+                ctx.font = "30px Ariel";
+                ctx.fillText('Waiting to join game...', 150, 200);
+                ctx.font = "20px Ariel";
+                ctx.fillText('Players Online: ' + globalState.nPlayers, 250, 250);
+            }
+        }
 
         function renderTank(x, y, theta, color, name) {
             const tankSize = 30;
@@ -94,7 +128,7 @@
             }
 
             function renderName() {
-                ctx.font = "12px Ariel";
+                ctx.font = "14px Ariel";
                 ctx.fillStyle = "black"
                 ctx.fillText(name, x, y - tankSize);
             }

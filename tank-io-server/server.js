@@ -1,15 +1,17 @@
 var server = require('http').createServer();
 var io = require('socket.io')(server);
+var sha = require('sha1')
 
 const games = [];
-games.push(new Game(0));
 
 io.on('connection', function (clientSocket) {
     let game = getAvailableGame();
-    let player = new Player(clientSocket);
+    let id = generateId();
+    let player = new Player(id, clientSocket);
     game.addPlayer(player);
     game.startIfReady();
-
+    clientSocket.emit('id', id);
+    clientSocket.emit('global', globalState());
     clientSocket.on('keys', function (data) {
         player.updateKeys(data);
     });
@@ -17,27 +19,32 @@ io.on('connection', function (clientSocket) {
     clientSocket.on('disconnect', function () {
         game.disconnect(clientSocket); // pass player?
     });
-
-    player.greeting();
+    console.log(player.id + ' connected');
 });
 
+function generateId() { return sha(Math.round(Math.random() * 10000000)) }
 
 function getAvailableGame() {
     let availableGame = null;
     games.forEach(function (game) {
         if (game.available()) availableGame = game;
     });
-    return availableGame === null ? new Game(games.length) : availableGame;
+    if (availableGame != null) return availableGame;
+    availableGame = new Game(games.length);
+    games.push(availableGame);
+    return availableGame;
 }
 
 server.listen(3000);
 
-function Player(socket) {
+function Player(id, socket) {
+    this.id = id;
     this.socket = socket;
-    this.x = 100;
-    this.y = 100;
+    this.x = 250 + Math.round((Math.random() - 0.5) * 500);
+    this.y = 250 + Math.round((Math.random() - 0.5) * 500);
     this.theta = 0;
     this.keys = [];
+    this.color = getRandomColor();
     // L R U D
     this.updateKeys = function (data) {
         this.keys = data.split('');
@@ -51,13 +58,27 @@ function Player(socket) {
         this.y += 2 * Math.sin(this.theta);
     }
 
-    this.greeting = function () {
-        console.log('New player');
-    };
+    this.state = function () {
+        return { id: this.id, x: this.x, y: this.y, theta: this.theta, color: this.color };
+    }
+
+    function getRandomColor() {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    this.start = function start(){
+        this.socket.emit('start');
+    }
 }
 
 function Game(id) {
-    this.maxPlayers = 2;
+    this.id = id;
+    this.maxPlayers = 4;
     this.players = [];
 
     this.addPlayer = function (player) {
@@ -73,7 +94,7 @@ function Game(id) {
     };
 
     this.start = function () {
-        console.log('Game started');
+        this.players.forEach(player => player.start())
     };
 
     this.disconnect = function (socket) {
@@ -92,7 +113,7 @@ function Game(id) {
 
     this.gameState = function () {
         var state = []
-        this.players.forEach(player => state.push({ x: player.x, y: player.y, theta: player.theta }))
+        this.players.forEach(player => state.push(player.state()))
         return state;
     }
 
@@ -103,40 +124,31 @@ function Game(id) {
 
 // Game Loop ======================================================================================
 
-var tickLengthMs = 1000 / 30
-
-/* gameLoop related variables */
-// timestamp of each loop
-var previousTick = Date.now()
-// number of times gameLoop gets called
-var actualTicks = 0
-
 var gameLoop = function () {
-    var now = Date.now()
-
-    actualTicks++
-    if (previousTick + tickLengthMs <= now) {
-        var delta = (now - previousTick) / 1000
-        previousTick = now
-        update(delta)
-        actualTicks = 0
-    }
-
-    if (Date.now() - previousTick < tickLengthMs - 16) {
-        setTimeout(gameLoop)
-    } else {
-        setImmediate(gameLoop)
-    }
+    update();
+    setTimeout(gameLoop, 33)
 }
 
-function update(delta) {
+function update() {
     // games.filter(available).foreach...
-    games.forEach(function (game) {
+    games.filter(game => !game.available()).forEach(function (game) {
         game.update();
         game.emit();
     });
 }
 
+function globalStateLoop() {
+    io.emit('global', globalState());
+    setTimeout(globalStateLoop, 1000);
+}
+
+function globalState() {
+    return {
+        nPlayers: games.map(g => g.players.length).reduce((a, b) => a + b, 0)
+    }
+}
+
 gameLoop();
+globalStateLoop();
 
 console.log('Server started')
