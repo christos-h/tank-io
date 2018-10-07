@@ -22,6 +22,7 @@
         socket.on('connect', function () { });
 
         socket.on('state', function (data) {
+            console.log(data);
             let state = data.filter(state => state.id == id)[0];
             if (state.id == id) {
                 x = state.x;
