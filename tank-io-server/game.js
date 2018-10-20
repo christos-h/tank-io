@@ -45,7 +45,6 @@ function Game(id, io) {
         
         this.bullets = this.bullets.filter(bullet => bullet.isAlive());
         this.bullets.forEach(function (bullet) {
-            console.log(bullet);
             bullet.update();
         })
     }

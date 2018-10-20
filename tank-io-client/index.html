@@ -176,6 +176,7 @@
                 var y = 100;
                 var theta = 0;
 
+                // Menu ========================================================
                 renderMenu();
 
                 function renderMenu() {
@@ -188,7 +189,7 @@
                         ctx.fillText('Players Online: ' + globalState.nPlayers, 250, 250);
                     }
                 }
-
+                // Tank render ===================================================
                 function renderTank(tank) {
                     const tankSize = 30;
 
@@ -233,6 +234,7 @@
                 }
 
                 function renderBullet(x, y) {
+                    ctx.beginPath();
                     ctx.arc(x, y, 3, 0, 2 * Math.PI);
                     ctx.fillStyle = 'black';
                     ctx.fill();

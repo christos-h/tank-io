@@ -1,5 +1,5 @@
 function Bullet(playerPosition, clickPosition) {
-    this.velocity = 5;
+    this.velocity = 8;
     this.theta = Math.atan2(clickPosition.y - playerPosition.y, clickPosition.x - playerPosition.x);
     this.x = playerPosition.x;
     this.y = playerPosition.y;
@@ -11,7 +11,7 @@ function Bullet(playerPosition, clickPosition) {
     }
 
     this.isAlive = function () {
-        return (new Date() - this.birth) < 3000;
+        return (new Date() - this.birth) < 10000;
     }
 
     this.state = function () {
