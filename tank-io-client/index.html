@@ -88,7 +88,7 @@
 
         <div class="banner">
             <canvas id="gameCanvas" width="500" height="500">
-                
+
             </canvas>
             <script src="./socket.io/socket.io.js"></script>
             <script>
@@ -96,6 +96,7 @@
                 var id = -1;
                 var globalState = null;
                 var gameInProgess = false;
+
 
                 // Socket =======================================================
                 var socket = io('http://localhost:3000');
@@ -106,15 +107,19 @@
                 socket.on('connect', function () { });
 
                 socket.on('state', function (data) {
-                    let state = data.filter(state => state.id == id)[0];
+                    let state = data.players.filter(state => state.id == id)[0];
                     if (state.id == id) {
                         x = state.x;
                         y = state.y;
                         theta = state.theta;
                     }
                     ctx.clearRect(0, 0, 500, 500);
-                    data.forEach(tank => {
-                        renderTank(tank.x, tank.y, tank.theta, tank.color, tank.id);
+                    data.players.forEach(tank => {
+                        renderTank(tank);
+                    });
+
+                    data.bullets.forEach(bullet => {
+                        renderBullet(bullet.x, bullet.y);
                     });
                 });
 
@@ -151,6 +156,19 @@
                         x: evt.clientX - rect.left,
                         y: evt.clientY - rect.top
                     };
+
+                    socket.emit('aim', {
+                        x: mouse.x,
+                        y: mouse.y
+                    })
+                }, false);
+
+                canvas.addEventListener('click', function (evt) {
+                    var rect = canvas.getBoundingClientRect();
+                    socket.emit('shoot', {
+                        x: evt.clientX - rect.left,
+                        y: evt.clientY - rect.top
+                    })
                 }, false);
 
                 // Graphics ====================================================
@@ -171,7 +189,7 @@
                     }
                 }
 
-                function renderTank(x, y, theta, color, name) {
+                function renderTank(tank) {
                     const tankSize = 30;
 
                     renderTracks();
@@ -182,16 +200,16 @@
                     function renderTracks() {
                         ctx.save();
                         ctx.beginPath();
-                        ctx.translate(x, y);
-                        ctx.rotate(theta)
+                        ctx.translate(tank.x, tank.y);
+                        ctx.rotate(tank.theta)
                         ctx.fillStyle = 'black';
                         ctx.fillRect(-tankSize / 2, -tankSize / 2, tankSize, tankSize);
                         ctx.restore();
                     }
 
                     function renderBody() {
-                        ctx.arc(x, y, (tankSize + 3) / 2, 0, 2 * Math.PI);
-                        ctx.fillStyle = color;
+                        ctx.arc(tank.x, tank.y, (tankSize + 3) / 2, 0, 2 * Math.PI);
+                        ctx.fillStyle = tank.color;
                         ctx.fill();
                     }
 
@@ -200,21 +218,17 @@
                         const cannonLength = 30;
                         ctx.save();
                         ctx.beginPath();
-                        ctx.translate(x, y);
-                        ctx.rotate(getMouseTheta(x, y));
+                        ctx.translate(tank.x, tank.y);
+                        ctx.rotate(tank.cannonTheta);
                         ctx.fillStyle = 'black';
-                        ctx.fillRect(-cannonWidth / 2, 0, cannonWidth, cannonLength);
+                        ctx.fillRect(0, -cannonWidth / 2, cannonLength, cannonWidth);
                         ctx.restore();
-                    }
-
-                    function getMouseTheta(x, y) {
-                        return -Math.atan2(mouse.x - x, mouse.y - y);
                     }
 
                     function renderName() {
                         ctx.font = "14px Ariel";
                         ctx.fillStyle = "black"
-                        ctx.fillText(name, x, y - tankSize);
+                        ctx.fillText(tank.id, tank.x, tank.y - tankSize);
                     }
                 }
 
@@ -222,7 +236,6 @@
                     ctx.arc(x, y, 3, 0, 2 * Math.PI);
                     ctx.fillStyle = 'black';
                     ctx.fill();
-                    ctx.stroke();
                 }
 
                         // END =================================================

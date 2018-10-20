@@ -18,9 +18,17 @@ io.on('connection', function (clientSocket) {
         player.updateKeys(data);
     });
 
+    clientSocket.on('shoot', function(clickPosition){
+        game.createBullet(player.position(), clickPosition);
+    })
+
     clientSocket.on('disconnect', function () {
         game.disconnect(clientSocket); // pass player?
     });
+
+    clientSocket.on('aim', function(theta){
+        player.updateCannonTheta(theta);
+    })
     console.log(player.id + ' connected');
 });
 

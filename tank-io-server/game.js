@@ -1,8 +1,11 @@
+var Bullet = require('./bullet').Bullet;
+
 function Game(id, io) {
     this.id = id;
     this.io = io;
     this.maxPlayers = 4;
     this.players = [];
+    this.bullets = [];
     this.started = false;
 
     this.addPlayer = function (player) {
@@ -28,18 +31,30 @@ function Game(id, io) {
                 console.log('Player ' + player.id + ' disconnected.')
                 return player.socket === socket;
             })), 1);
-        
+
     };
+
+    this.createBullet = function (playerPosition, clickPosition) {
+        this.bullets.push(new Bullet(playerPosition, clickPosition));
+    }
 
     this.update = function () {
         this.players.forEach(function (player) {
             player.update();
         })
+
+        this.bullets.forEach(function (bullet) {
+            bullet.update();
+        })
     }
 
     this.gameState = function gameState() {
-        var state = [];
-        this.players.forEach(player => state.push(player.state()));
+        var state = {
+            players: [],
+            bullets: []
+        };
+        this.players.forEach(player => state.players.push(player.state()));
+        this.bullets.forEach(bullet => state.bullets.push(bullet.state()));
         return state;
     }
 

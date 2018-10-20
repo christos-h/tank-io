@@ -4,6 +4,7 @@ function Player(id, socket) {
     this.x = 250 + Math.round((Math.random() - 0.5) * 500);
     this.y = 250 + Math.round((Math.random() - 0.5) * 500);
     this.theta = 0;
+    this.cannonTheta = 0;
     this.keys = [];
     this.color = getRandomColor();
     // L R U D
@@ -17,6 +18,13 @@ function Player(id, socket) {
         // Update positions
         this.x += 2 * Math.cos(this.theta);
         this.y += 2 * Math.sin(this.theta);
+    }
+
+    this.position = function () {
+        return {
+            x: this.x,
+            y: this.y
+        }
     }
 
     function getRandomColor() {
@@ -37,7 +45,11 @@ function Player(id, socket) {
     }
 
     this.state = function () {
-        return { id: this.id, x: this.x, y: this.y, theta: this.theta, color: this.color };
+        return { id: this.id, x: this.x, y: this.y, theta: this.theta, color: this.color, cannonTheta: this.cannonTheta };
+    }
+
+    this.updateCannonTheta = function(mouse) {
+        this.cannonTheta = Math.atan2(mouse.y - this.y, mouse.x - this.x);
     }
 }
 
