@@ -71,7 +71,7 @@
                         </ul>
                         <form class="search-form">
                             <div class="input-append ">
-                                <input type="text" class="search-query input-large" placeholder="site search">
+                                <input type="text" placeholder="site search">
                                 <button type="submit" class="btn"><i class="icon-search"></i></button>
                             </div>
                         </form>
@@ -87,7 +87,7 @@
         <!-- GAME ============================================================================================================================================================= -->
 
         <div class="banner">
-            <canvas id="gameCanvas" width="500" height="500">
+            <canvas id="gameCanvas" width="1000" height="800">
 
             </canvas>
             <script src="./socket.io/socket.io.js"></script>
@@ -113,7 +113,10 @@
                         y = state.y;
                         theta = state.theta;
                     }
-                    ctx.clearRect(0, 0, 500, 500);
+                    ctx.rect(0, 0, 1000, 800);
+                    ctx.fillStyle = '#d2dff4'
+                    ctx.fill()
+
                     data.players.forEach(tank => {
                         renderTank(tank);
                     });
@@ -143,9 +146,17 @@
 
                 document.body.addEventListener("keydown", function (e) {
                     keys[e.keyCode] = true;
+                    e.preventDefault();
+                    socket.emit('key', e.keyCode);
+                    socket.emit('aim', {
+                        x: mouse.x,
+                        y: mouse.y
+                    });
                 });
+
                 document.body.addEventListener("keyup", function (e) {
                     keys[e.keyCode] = false;
+                    socket.emit('key', '0');
                 });
 
                 // Mouse =======================================================
@@ -180,13 +191,12 @@
                 renderMenu();
 
                 function renderMenu() {
-
                     if (globalState != null) {
-                        ctx.clearRect(0, 0, 500, 500);
+                        ctx.clearRect(0, 0, 1000, 800);
                         ctx.font = "30px Ariel";
-                        ctx.fillText('Waiting to join game...', 150, 200);
+                        ctx.fillText('Waiting to join game...', 380, 400);
                         ctx.font = "20px Ariel";
-                        ctx.fillText('Players Online: ' + globalState.nPlayers, 250, 250);
+                        ctx.fillText('Players Online: ' + globalState.nPlayers, 450, 500);
                     }
                 }
                 // Tank render ===================================================

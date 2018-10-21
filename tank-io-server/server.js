@@ -12,10 +12,13 @@ io.on('connection', function (clientSocket) {
     let player = new Player(id, clientSocket);
     game.addPlayer(player);
     game.startIfReady();
+    
     clientSocket.emit('id', id);
+
     clientSocket.emit('global', globalState());
-    clientSocket.on('keys', function (data) {
-        player.updateKeys(data);
+
+    clientSocket.on('key', function (key) {
+        player.updateKeys(key);
     });
 
     clientSocket.on('shoot', function(clickPosition){
@@ -29,6 +32,7 @@ io.on('connection', function (clientSocket) {
     clientSocket.on('aim', function(theta){
         player.updateCannonTheta(theta);
     })
+
     console.log(player.id + ' connected');
 });
 
