@@ -137,6 +137,11 @@
                     if (!gameInProgess) renderMenu();
                 });
 
+                socket.on('game-over', function (game) {
+                    gameInProgess = false;
+                    if (!gameInProgess) renderMenu();
+                });
+
                 // Canvas / Context =============================================
                 const canvas = document.getElementById("gameCanvas");
                 const ctx = canvas.getContext("2d");

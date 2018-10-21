@@ -7,9 +7,29 @@ function Player(id, socket) {
     this.cannonTheta = 0;
     this.key = 0;
     this.color = getRandomColor();
+    this.gameover = false;
     // L R U D 0 (no key)
     this.updateKeys = function (key) {
         this.key = key
+    }
+
+    this.setInitialPos = function(theta) {
+        this.x = 500 + (300 * Math.cos(theta));
+        this.y = 400 + (300 * Math.sin(theta));
+    }
+
+    this.gameOverWin = function(){
+        this.gameover = true;
+        this.socket.emit('game-over', {
+            win: false
+        })
+    }
+
+    this.gameOverLose = function(){
+        this.gameover = true;
+        this.socket.emit('game-over', {
+            win: true
+        })
     }
 
     this.update = function () {
@@ -69,6 +89,10 @@ function Player(id, socket) {
 
     this.updateCannonTheta = function (mouse) {
         this.cannonTheta = Math.atan2(mouse.y - this.y, mouse.x - this.x);
+    }
+
+    this.collides = function(x,y) {
+        return Math.sqrt(Math.pow(x - this.x,2) + Math.pow(y - this.y,2)) < 15;
     }
 }
 

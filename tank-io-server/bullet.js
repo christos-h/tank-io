@@ -1,8 +1,8 @@
 function Bullet(playerPosition, clickPosition) {
     this.velocity = 8;
     this.theta = Math.atan2(clickPosition.y - playerPosition.y, clickPosition.x - playerPosition.x);
-    this.x = playerPosition.x;
-    this.y = playerPosition.y;
+    this.x = playerPosition.x + (35 * Math.cos(this.theta));
+    this.y = playerPosition.y + (35 * Math.sin(this.theta));
     this.birth = new Date();
 
     this.update = function () {

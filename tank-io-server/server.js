@@ -7,12 +7,18 @@ var Game = require('./game').Game;
 const games = [];
 
 io.on('connection', function (clientSocket) {
+    let id = addToQueue(clientSocket);
+    console.log(id + ' connected');
+});
+
+function addToQueue(clientSocket) {
     let game = getAvailableGame();
     let id = generateId();
     let player = new Player(id, clientSocket);
     game.addPlayer(player);
     game.startIfReady();
-    
+
+
     clientSocket.emit('id', id);
 
     clientSocket.emit('global', globalState());
@@ -21,20 +27,20 @@ io.on('connection', function (clientSocket) {
         player.updateKeys(key);
     });
 
-    clientSocket.on('shoot', function(clickPosition){
+    clientSocket.on('shoot', function (clickPosition) {
         game.createBullet(player.position(), clickPosition);
     })
 
     clientSocket.on('disconnect', function () {
-        game.disconnect(clientSocket); // pass player?
+        game.disconnect(player); // pass player?
     });
 
-    clientSocket.on('aim', function(theta){
+    clientSocket.on('aim', function (theta) {
         player.updateCannonTheta(theta);
-    })
+    });
 
-    console.log(player.id + ' connected');
-});
+    return player.id;
+}
 
 function generateId() { return sha(Math.round(Math.random() * 10000000)) }
 
@@ -79,4 +85,6 @@ function globalState() {
 gameLoop();
 globalStateLoop();
 
-console.log('Server started')
+console.log('Server started');
+
+module.exports.addToQueue = addToQueue;
