@@ -69,14 +69,12 @@
                             <li class="active"><a href="#">Home</a></li>
                             <li><a href="#">About</a></li>
                         </ul>
-                        <form class="search-form">
-                            <div class="input-append ">
-                                <input type="text" placeholder="site search">
-                                <button type="submit" class="btn"><i class="icon-search"></i></button>
-                            </div>
-                        </form>
+
                     </div>
                 </div>
+            </div>
+            <div class="input">
+                <input type="text" placeholder="Name" id="name">
             </div>
 
             <!-- Menu ends -->
@@ -97,14 +95,11 @@
                 var globalState = null;
                 var gameInProgess = false;
 
-
                 // Socket =======================================================
                 var socket = io('http://localhost:3000');
                 socket.on('id', function (_id) {
                     id = _id;
                 });
-
-                socket.on('connect', function () { });
 
                 socket.on('state', function (data) {
                     let state = data.players.filter(state => state.id == id)[0];
@@ -128,6 +123,7 @@
 
                 socket.on('start', function () {
                     gameInProgess = true;
+                    emitName();
                 })
 
                 socket.on('disconnect', function () { });
@@ -147,20 +143,21 @@
                 const ctx = canvas.getContext("2d");
 
                 // Keys =========================================================    
-                var keys = [];
 
                 document.body.addEventListener("keydown", function (e) {
-                    keys[e.keyCode] = true;
-                    e.preventDefault();
-                    socket.emit('key', e.keyCode);
-                    socket.emit('aim', {
-                        x: mouse.x,
-                        y: mouse.y
-                    });
+                    if (document.activeElement == document.getElementById("name")) {
+
+                    }else{
+                        e.preventDefault();
+                        socket.emit('key', e.keyCode);
+                        socket.emit('aim', {
+                            x: mouse.x,
+                            y: mouse.y
+                        });
+                    }
                 });
 
                 document.body.addEventListener("keyup", function (e) {
-                    keys[e.keyCode] = false;
                     socket.emit('key', '0');
                 });
 
@@ -204,6 +201,24 @@
                         ctx.fillText('Players Online: ' + globalState.nPlayers, 450, 500);
                     }
                 }
+
+                // Name ==========================================================
+
+                window.onload = function (e) {
+                    var nameTextBox = document.getElementById("name");
+                    nameTextBox.value = 'Player ' + (Math.floor(Math.random() * 1000));
+                    socket.emit('name', nameTextBox.value);
+
+                    nameTextBox.onchange = function () {
+                        emitName();
+                    }
+                }
+
+                function emitName() {
+                    var nameTextBox = document.getElementById("name");
+                    socket.emit('name', nameTextBox.value);
+                }
+
                 // Tank render ===================================================
                 function renderTank(tank) {
                     const tankSize = 30;
@@ -244,7 +259,7 @@
                     function renderName() {
                         ctx.font = "14px Ariel";
                         ctx.fillStyle = "black"
-                        ctx.fillText(tank.id, tank.x, tank.y - tankSize);
+                        ctx.fillText(tank.name, tank.x, tank.y - tankSize);
                     }
                 }
 
@@ -318,16 +333,7 @@
     <div class="container bg-blue b-radius-bottom">
         <div class="site-footer">
             <div class="row-fluid">
-                <div class="span4">
-                    <div class="user-info">
-                        <i class="fw-icon-twitter"></i>
-                        <h1><a href="#">@john doe</a></h1>
-                        <p class="last">Sed semper lorem at felis. Vestibulum volutpat, lacus a ultrices sagittis eupulvinar
-                            nuncint
-                        </p>
-                        <span>| 3 hrs ago |</span>
-                    </div>
-                </div>
+
             </div>
         </div>
 

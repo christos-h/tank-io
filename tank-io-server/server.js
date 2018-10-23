@@ -7,17 +7,16 @@ var Game = require('./game').Game;
 const games = [];
 
 io.on('connection', function (clientSocket) {
-    let id = addToQueue(clientSocket);
+    let id = addToQueue(clientSocket, "");
     console.log(id + ' connected');
 });
 
-function addToQueue(clientSocket) {
+function addToQueue(clientSocket, name) {
     let game = getAvailableGame();
     let id = generateId();
-    let player = new Player(id, clientSocket);
+    let player = new Player(id, clientSocket, name);
     game.addPlayer(player);
     game.startIfReady();
-
 
     clientSocket.emit('id', id);
 
@@ -27,9 +26,13 @@ function addToQueue(clientSocket) {
         player.updateKeys(key);
     });
 
+    clientSocket.on('name', function (name){
+        player.name = name;
+    });
+
     clientSocket.on('shoot', function (clickPosition) {
         game.createBullet(player.position(), clickPosition);
-    })
+    });
 
     clientSocket.on('disconnect', function () {
         game.disconnect(player); // pass player?

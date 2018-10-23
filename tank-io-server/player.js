@@ -1,4 +1,4 @@
-function Player(id, socket) {
+function Player(id, socket, name) {
     this.id = id;
     this.socket = socket;
     this.x = 250 + Math.round((Math.random() - 0.5) * 500);
@@ -8,24 +8,25 @@ function Player(id, socket) {
     this.key = 0;
     this.color = getRandomColor();
     this.gameover = false;
+    this.name = name;
     // L R U D 0 (no key)
     this.updateKeys = function (key) {
         this.key = key
     }
 
-    this.setInitialPos = function(theta) {
+    this.setInitialPos = function (theta) {
         this.x = 500 + (300 * Math.cos(theta));
         this.y = 400 + (300 * Math.sin(theta));
     }
 
-    this.gameOverWin = function(){
+    this.gameOverWin = function () {
         this.gameover = true;
         this.socket.emit('game-over', {
             win: false
         })
     }
 
-    this.gameOverLose = function(){
+    this.gameOverLose = function () {
         this.gameover = true;
         this.socket.emit('game-over', {
             win: true
@@ -46,6 +47,18 @@ function Player(id, socket) {
                 dy = -6;
                 break;
             case 40: // D
+                dy = 6;
+                break;
+            case 65: // L
+                dx = -6;
+                break;
+            case 68: // R
+                dx = 6;
+                break;
+            case 87: // U
+                dy = -6;
+                break;
+            case 83: // D
                 dy = 6;
                 break;
             case '0':
@@ -84,15 +97,23 @@ function Player(id, socket) {
     }
 
     this.state = function () {
-        return { id: this.id, x: this.x, y: this.y, theta: this.theta, color: this.color, cannonTheta: this.cannonTheta };
+        return {
+            id: this.id,
+            x: this.x,
+            y: this.y,
+            theta: this.theta,
+            color: this.color,
+            cannonTheta: this.cannonTheta,
+            name: this.name
+        };
     }
 
     this.updateCannonTheta = function (mouse) {
         this.cannonTheta = Math.atan2(mouse.y - this.y, mouse.x - this.x);
     }
 
-    this.collides = function(x,y) {
-        return Math.sqrt(Math.pow(x - this.x,2) + Math.pow(y - this.y,2)) < 15;
+    this.collides = function (x, y) {
+        return Math.sqrt(Math.pow(x - this.x, 2) + Math.pow(y - this.y, 2)) < 15;
     }
 }
 

@@ -59,7 +59,7 @@ function Game(id, io) {
                     player.gameOverWin();
                     this.players.splice(p, 1);
                     this.bullets.splice(b, 1);
-                    server.addToQueue(player.socket);
+                    server.addToQueue(player.socket, player.name);
                     continue;
                 }
             }
@@ -67,7 +67,7 @@ function Game(id, io) {
 
         if (this.players.length == 1) {
             this.players[0].gameOverLose();
-            server.addToQueue(this.players[0].socket);
+            server.addToQueue(this.players[0].socket, this.players[0].name);
             this.players.splice(0, 1);
         }
     }
