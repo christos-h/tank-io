@@ -3,6 +3,21 @@ var io = require('socket.io')(server);
 var sha = require('sha1');
 var Player = require('./player').Player;
 var Game = require('./game').Game;
+var express = require('express');
+var app = express();
+var path = require('path');
+
+// Express =========================================================
+
+// viewed at http://localhost:8080
+app.use(express.static(__dirname + '/../tank-io-client/'))
+app.get('/', function(req, res) {
+    res.sendFile(path.join(__dirname + '/../tank-io-client/index.html'));
+});
+
+app.listen(8080);
+
+// Game ============================================================
 
 const games = [];
 
