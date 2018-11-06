@@ -10,9 +10,9 @@ var path = require('path');
 // Express =========================================================
 
 // viewed at http://localhost:8080
-app.use(express.static(__dirname + '/../tank-io-client/'))
+app.use(express.static(__dirname + '/../client/'))
 app.get('/', function(req, res) {
-    res.sendFile(path.join(__dirname + '/../tank-io-client/index.html'));
+    res.sendFile(path.join(__dirname + '/../client/index.html'));
 });
 
 app.listen(8080);
