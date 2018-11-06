@@ -27,36 +27,6 @@ Much like Zook in The Social Network, we need a ranking algorithm. Also ranking 
 
 Yeah lets use mongo.
 
-###Algorithm (In Java because that's what I found):
+###Algorithm
 
-    static float Probability(float loser, float winner) { return 1.0f * 1.0f / (1 + 1.0f * (float)(Math.pow(10, 1.0f * (loser - winner) / 400))); } 
-
-    // Function to calculate Elo rating 
-    // K is a constant. 
-    // d determines whether Player A wins 
-    // or Player B.  
-    static void EloRating(float Ra, float Rb, int k, boolean d) 
-    {  
-      
-        // To calculate the Winning 
-        // Probability of Player B 
-        float Pb = Probability(Ra, Rb); 
-      
-        // To calculate the Winning 
-        // Probability of Player A 
-        float Pa = Probability(Rb, Ra); 
-      
-         
-        if (d) {
-            // Case -1 When Player A wins 
-             // Updating the Elo Ratings 
-            Ra += k * (1 - Pa); 
-            Rb +=  k * (0 - Pb); 
-        }  
-        else {
-            // Case -2 When Player B wins 
-            // Updating the Elo Ratings 
-            Ra += k * (0 - Pa); 
-            Rb += k * (1 - Pb); 
-        }               
-    } 
+See server/elo.js
