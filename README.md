@@ -30,3 +30,24 @@ Yeah lets use mongo.
 ###Algorithm
 
 See server/elo.js
+
+###Profiles
+
+* Local:
+	* Web-Server port 8080
+	* socket-io port 3000
+	* url localhost
+* Live
+	* Web-Server port 80
+	* socket-io port 3000
+	* url 35.187.61.163
+
+###MongoDB Install
+
+sudo apt install -y mongodb
+
+###todo
+
+* Create deploy script (May be a bit more difficult, should probably be in .gitignore)
+* Create install script
+
