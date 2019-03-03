@@ -3,6 +3,7 @@
 This is an attempt at creating an online game using socket-io.
 
 ### Introduction:
+
 The game will involve a 4 player arena. Each player controls a tank which he can move and shoot with. Shooting creates a projectile which will instantly kill whoever collides with the projectile.
 
 Simple right?
@@ -24,10 +25,7 @@ In order to monetize this game and make it have real-world appeal, we need to in
 Ranking system:
 ELO rating system used in chess / LoL.
 
-
-Yeah lets use mongo.
-
-### Algorithm
+### Ranking Algorithm
 
 See server/elo.js
 
